@@ -1,0 +1,6 @@
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "mcplugin-svc";
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO "mcplugin-svc";
+GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO "mcplugin-svc";
+
+GRANT USAGE ON SCHEMA public TO "mcplugin-svc";
+GRANT CREATE ON SCHEMA public TO "mcplugin-svc";

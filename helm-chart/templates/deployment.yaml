@@ -1,0 +1,42 @@
+{{- if .Values.deployment.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}
+  labels:
+    app: {{ .Values.appName }}
+    chart: {{ template "chart.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: {{ .Values.deployment.rollingUpdate.maxUnavailable }}
+      maxSurge: {{ .Values.deployment.rollingUpdate.maxSurge }}
+  minReadySeconds: {{ .Values.deployment.rollingUpdate.minReadySeconds }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        installed: {{ now | htmlDate }} {{/* Any random value works, we need to recreate pods even when docker image name is not changed. */}}
+        {{- if eq (.Values.logRotation | default "daily") "monthly" }}
+        log-index: monthly
+        {{- else }}
+        log-index: daily
+        {{- end }}
+        app: {{ .Values.appName }}
+        release: {{ .Release.Name }}
+        {{- if .Values.logArchive | default false }}
+        log-archive: "true"
+        {{- end }}
+        app-type: {{ .Values.logPattern }}
+        {{- if .Values.ciProjectPathSlug }}
+        ci-project-path-slug: {{ .Values.ciProjectPathSlug }}
+        {{- end }}
+    {{- template "podSpec" . }}
+{{- end }}

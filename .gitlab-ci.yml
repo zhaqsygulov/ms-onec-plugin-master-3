@@ -1,0 +1,74 @@
+stages:
+  - build
+  - dockerize
+  - deploy
+
+# variables:
+#   MAVEN_LOCAL_REPO: ./.m2/repository
+#   MAVEN_CLI_OPTS: "-s $MRS_MAVEN_SETTINGS --batch-mode -Dmaven.repo.local=$MAVEN_LOCAL_REPO"
+
+.build_template:
+  image: maven:3.8.1-openjdk-17
+  stage: build
+  script:
+    - mvn clean package -B -DskipTests
+  artifacts:
+    paths:
+      - ./target/*.jar
+    # expire_in: 1 day
+
+build:
+  extends: .build_template
+  only:
+    - dev
+    - master
+  tags:
+    - k3s-sirius
+
+dockerize:
+  image: docker:stable
+  stage: dockerize
+  services:
+    - docker:dind
+  before_script:
+    - docker login --username $ACCESS_USERNAME --password $ACCESS_TOKEN registry.gitlab.com
+  script:
+    - docker build -f Dockerfile -t $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA .
+    - docker push $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA
+  only:
+    - dev
+    - master
+  tags:
+    - k3s-sirius
+
+deploy-dev:
+   stage: deploy
+   image: alpine/k8s:1.20.7
+   tags:
+     - k3s-sirius
+   only:
+     - dev
+   variables:
+     DOCKER_HOST: tcp://docker:2375/
+     DOCKER_DRIVER: overlay2
+     ENVIRONMENT: dev
+   before_script:
+     - export KUBECONFIG=$K3S_CONFIG
+   script:
+     - helm upgrade --install $CI_PROJECT_NAME ./helm-chart -f ./values-dev.yaml --install --set-string=image.repository=$CI_REGISTRY_IMAGE --set-string=image.branch=$CI_COMMIT_REF_NAME --set-string=image.tag=$CI_COMMIT_SHORT_SHA -n $ENVIRONMENT --wait
+
+deploy-prod:
+  stage: deploy
+  image: alpine/k8s:1.20.7
+  tags:
+    - k3s-sirius
+  only:
+    - master
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    ENVIRONMENT: prod
+  before_script:
+    - export KUBECONFIG=$K3S_CONFIG
+  script:
+    - helm upgrade --install $CI_PROJECT_NAME ./helm-chart -f ./values-prod.yaml --install --set-string=image.repository=$CI_REGISTRY_IMAGE --set-string=image.branch=$CI_COMMIT_REF_NAME --set-string=image.tag=$CI_COMMIT_SHORT_SHA -n $ENVIRONMENT --wait
