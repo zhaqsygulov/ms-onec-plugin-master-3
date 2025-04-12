@@ -36,3 +36,5 @@ logging:
       springframework:
         web: DEBUG
         orm: DEBUG
+server:
+  port: ${PORT:8080}
