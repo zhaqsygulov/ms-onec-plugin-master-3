@@ -1,16 +1,16 @@
 package com.siriuslab.onec.widget.domain.account.settings.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.siriuslab.onec.widget.domain.account.settings.dto.AccountSettingsRequest;
+import com.siriuslab.onec.widget.domain.account.settings.dto.AccountSettingsResponse;
 import com.siriuslab.onec.widget.domain.account.settings.entity.AccountSettingsEntity;
 import com.siriuslab.onec.widget.domain.account.settings.repository.AccountSettingsRepository;
 import com.siriuslab.onec.widget.domain.account.settings.service.AccountSettingsService;
+import com.siriuslab.onec.widget.domain.account.token.entity.AccountEntity;
 import com.siriuslab.onec.widget.domain.account.token.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -22,50 +22,48 @@ public class AccountSettingsServiceImpl implements AccountSettingsService {
     private final AccountRepository accountRepository;
 
     @Override
-    public AccountSettingsEntity getByAccountId(UUID accountId) {
-        return settingsRepository.findByAccountId(accountId)
-                .orElseGet(() -> {
-                    AccountSettingsEntity empty = new AccountSettingsEntity();
-                    empty.setAccountId(accountId);
-                    return settingsRepository.save(empty);
-                });
+    public AccountSettingsResponse getSettings(UUID accountId) {
+        AccountEntity account = accountRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        AccountSettingsEntity settings = settingsRepository.findByAccount(account)
+                .orElse(new AccountSettingsEntity());
+
+        return AccountSettingsResponse.builder()
+                .companyName(settings.getCompanyName())
+                .description(settings.getCompanyDescription())
+                .address(settings.getCompanyAddress())
+                .minOrderSum(settings.getMinOrderSum())
+                .whatsapp(settings.getWhatsappUrl())
+                .telegram(settings.getTelegramUrl())
+                .gis2(settings.getGis2Url())
+                .logo(settings.getLogoPath())
+                .build();
     }
 
     @Override
-    public AccountSettingsEntity save(UUID accountId, AccountSettingsEntity entity) throws JsonProcessingException {
-        entity.setAccountId(accountId);
-        return settingsRepository.save(entity);
-    }
+    public void updateSettings(UUID accountId, AccountSettingsRequest request) {
+        AccountEntity account = accountRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
 
-    @Override
-    public void saveClientSettings(UUID accountId, String name, String desc, String address, double minSum,
-                                   String whatsapp, String telegram, String gis2, MultipartFile logo) {
+        AccountSettingsEntity settings = settingsRepository.findByAccount(account)
+                .orElse(new AccountSettingsEntity());
 
-        Optional<AccountSettingsEntity> settingsOpt = settingsRepository.findByAccountId(accountId);
+        settings.setAccount(account);
+        settings.setCompanyName(request.getCompanyName());
+        settings.setCompanyDescription(request.getDescription());
+        settings.setCompanyAddress(request.getAddress());
+        settings.setMinOrderSum(request.getMinOrderSum());
+        settings.setWhatsappUrl(request.getWhatsapp());
+        settings.setTelegramUrl(request.getTelegram());
+        settings.setGis2Url(request.getGis2());
 
-        AccountSettingsEntity settings = settingsOpt.orElseGet(() -> {
-            AccountSettingsEntity s = new AccountSettingsEntity();
-            s.setAccountId(accountId);
-            return s;
-        });
-
-        settings.setCompanyName(name);
-        settings.setDescription(desc);
-        settings.setAddress(address);
-        settings.setMinOrderSum(minSum);
-        settings.setWhatsapp(whatsapp);
-        settings.setTelegram(telegram);
-        settings.setGis2(gis2);
-
-        if (logo != null && !logo.isEmpty()) {
-            try {
-                settings.setLogo(logo.getBytes());
-            } catch (Exception e) {
-                log.warn("Ошибка при загрузке логотипа: {}", e.getMessage());
-            }
+        // TODO: Обработка лого, если появится
+        if (request.getLogoPath() != null) {
+            settings.setLogoPath(request.getLogoPath());
         }
 
         settingsRepository.save(settings);
-        log.info("Настройки клиента сохранены для accountId={}", accountId);
+        log.info("Account settings updated for accountId={}", accountId);
     }
 }
