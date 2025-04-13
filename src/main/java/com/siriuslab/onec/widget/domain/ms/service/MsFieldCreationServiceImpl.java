@@ -1,3 +1,10 @@
+package com.siriuslab.onec.widget.domain.ms.service;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
 @Service
 @RequiredArgsConstructor
 public class MsFieldCreationServiceImpl implements MsFieldCreationService {
