@@ -95,6 +95,31 @@ public class AccountSettingsEntity extends Auditable {
     private boolean factureOut;
     private boolean abstractInventory;
 
+    @Column(name = "company_name")
+private String companyName;
+
+@Column(name = "company_description", columnDefinition = "TEXT")
+private String companyDescription;
+
+@Column(name = "company_address")
+private String companyAddress;
+
+@Column(name = "min_order_sum")
+private Double minOrderSum;
+
+@Column(name = "whatsapp_url")
+private String whatsappUrl;
+
+@Column(name = "telegram_url")
+private String telegramUrl;
+
+@Column(name = "gis2_url")
+private String gis2Url;
+
+@Column(name = "logo_path")
+private String logoPath;
+
+
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @MapsId
     @JsonIgnore
