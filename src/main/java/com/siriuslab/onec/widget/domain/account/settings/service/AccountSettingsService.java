@@ -9,3 +9,5 @@ public interface AccountSettingsService {
     AccountSettingsEntity getByAccountId(UUID id);
     AccountSettingsEntity save(UUID accountId, AccountSettingsEntity entity) throws JsonProcessingException;
 }
+void saveClientSettings(UUID accountId, String name, String desc, String address, double minSum,
+                        String whatsapp, String telegram, String gis2, MultipartFile logo);
