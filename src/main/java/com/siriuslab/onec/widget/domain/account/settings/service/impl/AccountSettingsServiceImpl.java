@@ -1,7 +1,5 @@
 package com.siriuslab.onec.widget.domain.account.settings.service.impl;
 
-import com.siriuslab.onec.widget.domain.account.settings.dto.AccountSettingsRequest;
-import com.siriuslab.onec.widget.domain.account.settings.dto.AccountSettingsResponse;
 import com.siriuslab.onec.widget.domain.account.settings.entity.AccountSettingsEntity;
 import com.siriuslab.onec.widget.domain.account.settings.repository.AccountSettingsRepository;
 import com.siriuslab.onec.widget.domain.account.settings.service.AccountSettingsService;
@@ -10,7 +8,9 @@ import com.siriuslab.onec.widget.domain.account.token.repository.AccountReposito
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -22,48 +22,46 @@ public class AccountSettingsServiceImpl implements AccountSettingsService {
     private final AccountRepository accountRepository;
 
     @Override
-    public AccountSettingsResponse getSettings(UUID accountId) {
-        AccountEntity account = accountRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
-
-        AccountSettingsEntity settings = settingsRepository.findByAccount(account)
-                .orElse(new AccountSettingsEntity());
-
-        return AccountSettingsResponse.builder()
-                .companyName(settings.getCompanyName())
-                .description(settings.getCompanyDescription())
-                .address(settings.getCompanyAddress())
-                .minOrderSum(settings.getMinOrderSum())
-                .whatsapp(settings.getWhatsappUrl())
-                .telegram(settings.getTelegramUrl())
-                .gis2(settings.getGis2Url())
-                .logo(settings.getLogoPath())
-                .build();
+    public AccountSettingsEntity getByAccountId(UUID id) {
+        return settingsRepository.findById(id.getMostSignificantBits()) // пример ID-адаптации
+                .orElseThrow(() -> new RuntimeException("Settings not found"));
     }
 
     @Override
-    public void updateSettings(UUID accountId, AccountSettingsRequest request) {
+    public AccountSettingsEntity save(UUID accountId, AccountSettingsEntity entity) {
+        return settingsRepository.save(entity);
+    }
+
+    @Override
+    public void saveClientSettings(UUID accountId,
+                                   String name,
+                                   String desc,
+                                   String address,
+                                   double minSum,
+                                   String whatsapp,
+                                   String telegram,
+                                   String gis2,
+                                   MultipartFile logo) {
         AccountEntity account = accountRepository.findByAccountId(accountId)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
-        AccountSettingsEntity settings = settingsRepository.findByAccount(account)
-                .orElse(new AccountSettingsEntity());
+        Optional<AccountSettingsEntity> optional = settingsRepository.findByAccount(account);
+        AccountSettingsEntity settings = optional.orElse(new AccountSettingsEntity());
 
         settings.setAccount(account);
-        settings.setCompanyName(request.getCompanyName());
-        settings.setCompanyDescription(request.getDescription());
-        settings.setCompanyAddress(request.getAddress());
-        settings.setMinOrderSum(request.getMinOrderSum());
-        settings.setWhatsappUrl(request.getWhatsapp());
-        settings.setTelegramUrl(request.getTelegram());
-        settings.setGis2Url(request.getGis2());
+        settings.setCompanyName(name);
+        settings.setCompanyDescription(desc);
+        settings.setCompanyAddress(address);
+        settings.setMinOrderSum(minSum);
+        settings.setWhatsappUrl(whatsapp);
+        settings.setTelegramUrl(telegram);
+        settings.setGis2Url(gis2);
 
-        // TODO: Обработка лого, если появится
-        if (request.getLogoPath() != null) {
-            settings.setLogoPath(request.getLogoPath());
+        if (logo != null && !logo.isEmpty()) {
+            settings.setLogoPath("/logo/" + logo.getOriginalFilename()); // или логика загрузки файла
         }
 
         settingsRepository.save(settings);
-        log.info("Account settings updated for accountId={}", accountId);
+        log.info("Client settings saved for accountId={}", accountId);
     }
 }
