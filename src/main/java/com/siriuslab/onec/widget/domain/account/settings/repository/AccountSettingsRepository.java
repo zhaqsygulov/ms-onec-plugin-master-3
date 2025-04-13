@@ -6,5 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AccountSettingsRepository extends JpaRepository<AccountSettingsEntity, Long> {
+    Optional<AccountSettingsEntity> findByAccount(AccountEntity account);
 }
+
 
