@@ -38,7 +38,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅
                 .securityMatcher("/api/app-ms-adapter/**", "/api/one-c/**", "/api/account/**")
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> auth
+    .requestMatchers("/api/app-ms-adapter/context/**").permitAll() // ✅ доступ к employee без авторизации
+    .anyRequest().authenticated()
+)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(withDefaults())
                 .build();
