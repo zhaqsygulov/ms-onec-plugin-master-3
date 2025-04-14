@@ -16,13 +16,15 @@ public class ContextController {
 
     @GetMapping("/{contextKey}/employee")
     public ResponseEntity<GetEmployeeContextResponse> getEmployeeByContext(@PathVariable String contextKey) {
-        AppConfigEntity config = appConfigRepository.findByContextKey(contextKey)
-                .orElseThrow(() -> new RuntimeException("Context not found"));
+        AppConfigEntity config = appConfigRepository.findByKey(contextKey);
+        if (config == null) {
+            return ResponseEntity.notFound().build();
+        }
 
-        // 👇 Здесь заглушка — нужно заменить на вызов к API МоегоСклада по токену
+        // 🔧 Заглушка: просто вернём токен как будто это employee
         GetEmployeeContextResponse response = new GetEmployeeContextResponse();
-        response.setToken(config.getAccessToken());
-        response.setFullName("Заглушка Сотрудника");
+        response.setToken(config.getValue());
+        response.setFullName("Тестовый Сотрудник"); // позже заменим на реальный вызов MS
 
         return ResponseEntity.ok(response);
     }
