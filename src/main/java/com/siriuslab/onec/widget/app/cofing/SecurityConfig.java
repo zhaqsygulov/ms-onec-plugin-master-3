@@ -75,7 +75,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("https://<ТВОЙ-FRONT>.vercel.app")); // 👈 замени на свой
+        config.setAllowedOrigins(List.of("https://opt-order-frontend-9m7d.vercel.app")); // 👈 замени на свой
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true); // если потребуется
