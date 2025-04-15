@@ -16,20 +16,28 @@ public class MsApiService {
 
     private final MsApiClient msApiClient;
     private final ObjectMapper objectMapper;
+
     public GetEmployeeContextResponse getContext(String bearerToken, String context) throws JsonProcessingException {
         try {
-            GetEmployeeContextResponse response = msApiClient.getContext("Bearer " + bearerToken, context);
-            log.info("applicationActivationEntity : {}", objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(response));
+            String authHeader = "Bearer " + bearerToken;
+            log.info("🟡 Calling MS API with contextKey={} and token={}", context, bearerToken);
+
+            GetEmployeeContextResponse response = msApiClient.getContext(authHeader, context);
+
+            log.info("✅ Получен ответ от MS API:\n{}", 
+                     objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(response));
+
             return response;
+
         } catch (HttpClientErrorException.NotFound e) {
-            log.error("404 Not Found: {}", e.getMessage());
-            throw new IllegalArgumentException("The requested context was not found.");
+            log.error("❌ 404 Not Found for context '{}': {}", context, e.getMessage());
+            throw new IllegalArgumentException("Контекст не найден.");
         } catch (JsonProcessingException e) {
-            log.error("Error processing JSON: {}", e.getMessage());
-            throw new RuntimeException("Error processing JSON response.", e);
+            log.error("❌ JSON processing error: {}", e.getMessage());
+            throw new RuntimeException("Ошибка обработки JSON", e);
         } catch (Exception e) {
-            log.error("Unexpected error: {}", e.getMessage());
-            throw new RuntimeException("An unexpected error occurred.", e);
+            log.error("❌ Unexpected error: {}", e.getMessage(), e);
+            throw new RuntimeException("Непредвиденная ошибка при вызове MS API", e);
         }
     }
 }
