@@ -17,6 +17,6 @@ public interface MsApiClient {
     @PostMapping("/context/{context}")
     GetEmployeeContextResponse getContext(
         @RequestHeader("Authorization") String authorization,
-        @PathVariable("context") String context
+        @PathVariable String context
     );
 }
