@@ -17,27 +17,21 @@ public class MsApiService {
     private final MsApiClient msApiClient;
     private final ObjectMapper objectMapper;
 
-    public GetEmployeeContextResponse getContext(String bearerToken, String context) throws JsonProcessingException {
+    public GetEmployeeContextResponse getContext(String accessToken, String contextKey) {
         try {
-            String authHeader = "Bearer " + bearerToken;
-            log.info("🟡 Calling MS API with contextKey={} and token={}", context, bearerToken);
-
-            GetEmployeeContextResponse response = msApiClient.getContext(authHeader, context);
-
-            log.info("✅ Получен ответ от MS API:\n{}", 
-                     objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(response));
-
+            String bearerToken = "Bearer " + accessToken;
+            GetEmployeeContextResponse response = msApiClient.getContext(bearerToken, contextKey);
+            log.info("✅ Контекст сотрудника: {}", objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(response));
             return response;
-
         } catch (HttpClientErrorException.NotFound e) {
-            log.error("❌ 404 Not Found for context '{}': {}", context, e.getMessage());
+            log.error("❌ Контекст не найден: {}", e.getMessage());
             throw new IllegalArgumentException("Контекст не найден.");
         } catch (JsonProcessingException e) {
-            log.error("❌ JSON processing error: {}", e.getMessage());
-            throw new RuntimeException("Ошибка обработки JSON", e);
+            log.error("❌ Ошибка обработки JSON: {}", e.getMessage());
+            throw new RuntimeException("Ошибка при обработке JSON.", e);
         } catch (Exception e) {
-            log.error("❌ Unexpected error: {}", e.getMessage(), e);
-            throw new RuntimeException("Непредвиденная ошибка при вызове MS API", e);
+            log.error("❌ Неожиданная ошибка: {}", e.getMessage());
+            throw new RuntimeException("Произошла непредвиденная ошибка.", e);
         }
     }
 }
