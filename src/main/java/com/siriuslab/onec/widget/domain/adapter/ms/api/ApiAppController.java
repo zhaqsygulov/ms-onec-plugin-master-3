@@ -1,6 +1,5 @@
 package com.siriuslab.onec.widget.domain.adapter.ms.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.siriuslab.onec.widget.app.component.JwtGenerator;
 import com.siriuslab.onec.widget.domain.account.token.entity.AccountEntity;
 import com.siriuslab.onec.widget.domain.account.token.service.AccountService;
@@ -33,18 +32,13 @@ public class ApiAppController {
         // TODO move business logic into service
         String token = jwtGenerator.generateToken();
         jwtGenerator.verifyToken(token);
-        GetEmployeeContextResponse response;
-        try {
-            response = msApiService.getContext(token, contextKey);
-        } catch (JsonProcessingException e) {
-            log.error("msApiService.getContext error by token : {}  context : {} error : {}",
-                    token, contextKey, e.getMessage());
-            throw new IllegalArgumentException(e);
-        }
+
+        GetEmployeeContextResponse response = msApiService.getContext(token, contextKey);
 
         AccountEntity accountEntity = accountService.findByAccountId(response.getAccountId());
         response.setToken(accountEntity.getAccessToken());
         response.setSettings(accountEntity.getSettings());
+
         return ResponseEntity.ok(response);
     }
 }
