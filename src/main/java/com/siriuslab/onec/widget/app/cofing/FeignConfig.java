@@ -1,20 +1,23 @@
 package com.siriuslab.onec.widget.app.cofing;
 
-import feign.Logger;
 import feign.RequestInterceptor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
+@Slf4j
+@Configuration
 public class FeignConfig {
-
     @Bean
-    public Logger.Level feignLoggerLevel() {
-        return Logger.Level.FULL; // Включает полный лог всех запросов/ответов
+    public RequestInterceptor gzipRequestInterceptor() {
+        return template -> {
+            try {
+                template.header("Accept-Encoding", "gzip");
+                template.header("Content-Type", "application/json");
+                template.header("Accept", "application/json");
+            } catch (Exception e) {
+                log.error("Error configuring Feign headers: {}", e.getMessage());
+            }
+        };
     }
-
-    // Если нужно глобально добавить заголовки:
-    // @Bean
-    // public RequestInterceptor requestInterceptor() {
-    //     return template -> template.header("Content-Type", "application/json");
-    // }
-
 }
