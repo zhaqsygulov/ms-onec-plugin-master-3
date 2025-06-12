@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 public interface MsApiClient {
 
     @PostMapping("/context/{context}")
-    @Headers("Content-Type: application/json")
     GetEmployeeContextResponse getContext(
         @RequestHeader("Authorization") String authorization,
         @PathVariable String context
