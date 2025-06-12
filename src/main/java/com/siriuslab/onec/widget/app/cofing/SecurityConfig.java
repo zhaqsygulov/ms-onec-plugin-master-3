@@ -1,5 +1,6 @@
 package com.siriuslab.onec.widget.app.config;
 
+import org.springframework.http.HttpMethod;
 import com.siriuslab.onec.widget.app.component.JWTAuthenticationFilter;
 import com.siriuslab.onec.widget.app.service.impl.AppConfigServiceImpl;
 import lombok.RequiredArgsConstructor;
