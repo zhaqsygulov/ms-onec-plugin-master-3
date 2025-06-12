@@ -18,30 +18,85 @@ public class AccountSettingsEntity extends Auditable {
     @Id
     private Long id;
 
-    @Column(name = "company_name")
-private String companyName;
+    //Заказы/Счет на оплату
+    private boolean customerOrder;
 
-@Column(name = "company_description", columnDefinition = "TEXT")
-private String companyDescription;
+    //Отгрузки/Реализация ТМЗ и Услуг
+    private boolean demand;
+    private boolean demandIn;
 
-@Column(name = "company_address")
-private String companyAddress;
+    //Возвраты покупателей/Возврат ТМЗ от покупателя
+    private boolean salesReturn;
+    private boolean salesReturnIn;
 
-@Column(name = "min_order_sum")
-private Double minOrderSum;
+    //Приемки/Поступление ТМЗ и услуг
+    private boolean supply;
+    private boolean supplyIn;
 
-@Column(name = "whatsapp_url")
-private String whatsappUrl;
+    //Возвраты поставщикам/Возврат ТМЗ поставщику
+    private boolean purchaseReturn;
 
-@Column(name = "telegram_url")
-private String telegramUrl;
+    //Оприходования/Оприходование ТМЗ
+    private boolean enter;
+    private boolean enterIn;
 
-@Column(name = "gis2_url")
-private String gis2Url;
+    // Входящие
+    private boolean paymentIn;
+    private boolean paymentInIn;
 
-@Column(name = "logo_path")
-private String logoPath;
+    //Исходящие
+    private boolean paymentOut;
+    private boolean paymentOutIn;
 
+    //Приходный кассовый ордер
+    private boolean cashIn;
+    private boolean cashInIn;
+
+    //Расходный кассовый ордер
+    private boolean cashOut;
+    private boolean cashOutIn;
+
+    //Заказы поставщику/Заказ поставщику
+    private boolean purchaseOrder;
+
+    //Списания/Списание ТМЗ
+    private boolean loss;
+
+    //Перемещения/Перемещение ТМЗ
+    private boolean move;
+
+    //Тех. операции/Производственные документы (Требование накладная, Отчет о производстве за смену)
+    private boolean processing;
+
+    /** reference */
+
+    //Товары/Номенклатура
+    private boolean good;
+    private boolean goodIn;
+
+    //Контрагенты/Контрагенты
+    private boolean company;
+    private boolean companyIn;
+
+    //Договоры/Договоры контрагентов
+    private boolean contract;
+    private boolean contractIn;
+
+    //Тех. карты/Спецификации номенклатур
+    private boolean processingPlan;
+
+    //Комплекты/Комплектация ТМЗ или Отчет производства за смену
+    private boolean bundle;
+
+    private boolean productFolder;
+    private boolean productFolderIn;
+
+    private boolean manually;
+    private boolean productionTask;
+    private boolean retailDemand;
+    private boolean retailSalesReturn;
+    private boolean factureOut;
+    private boolean abstractInventory;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @MapsId

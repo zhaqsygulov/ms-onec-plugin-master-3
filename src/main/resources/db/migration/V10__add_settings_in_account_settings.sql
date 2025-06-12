@@ -1,0 +1,5 @@
+ALTER TABLE account_settings
+    ADD COLUMN IF NOT EXISTS product_folder BOOLEAN DEFAULT FALSE NOT NULL;
+
+ALTER TABLE account_settings
+    ADD COLUMN IF NOT EXISTS product_folder_in BOOLEAN DEFAULT FALSE NOT NULL;

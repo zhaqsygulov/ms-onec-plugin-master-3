@@ -152,6 +152,14 @@ public class AccountSettingsUpdateRequest {
         @JsonProperty("bundle")
         private boolean bundle;
 
+        @Schema(description = "Indicates whether productFolder are enabled", example = "true")
+        @JsonProperty("productFolder")
+        private boolean productFolder;
+
+        @Schema(description = "Indicates whether productFolderIn are enabled", example = "true")
+        @JsonProperty("productFolderIn")
+        private boolean productFolderIn;
+
         @Schema(description = "Indicates whether manually are enabled", example = "true")
         @JsonProperty("manually")
         private boolean manually;
