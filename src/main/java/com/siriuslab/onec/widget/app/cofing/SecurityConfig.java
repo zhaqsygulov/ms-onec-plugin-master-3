@@ -40,9 +40,9 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .securityMatcher("/api/app-ms-adapter/**", "/api/one-c/**", "/api/account/**")
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // ✅ CORS preflight
-                        .requestMatchers("/api/app-ms-adapter/context/**").permitAll() // ✅ employee без auth
-                        .requestMatchers("/api/app-ms-adapter/products").permitAll()   // или authenticated()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Preflight разрешен
+                        .requestMatchers("/api/app-ms-adapter/context/**").permitAll() // Доступ к employee
+                        .requestMatchers("/api/app-ms-adapter/products").permitAll()   // Или authenticated
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -77,13 +77,12 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // ✅ CORS для разных окружений
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of(
-                "https://*.vercel.app",   // фронт на Vercel
-                "http://localhost:*"      // локальная разработка
+        config.setAllowedOrigins(List.of(
+                "https://opt-order-frontend-9m7d.vercel.app",
+                "http://localhost:3000"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
