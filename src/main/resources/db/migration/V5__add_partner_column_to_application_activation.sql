@@ -1,2 +1,0 @@
-ALTER TABLE application_activation
-    ADD COLUMN partner BOOLEAN DEFAULT FALSE NOT NULL;
