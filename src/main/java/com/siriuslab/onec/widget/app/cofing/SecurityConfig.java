@@ -1,4 +1,4 @@
-package com.siriuslab.onec.widget.app.cofing;
+package com.siriuslab.onec.widget.app.config;
 
 import com.siriuslab.onec.widget.app.component.JWTAuthenticationFilter;
 import com.siriuslab.onec.widget.app.service.impl.AppConfigServiceImpl;
@@ -35,8 +35,8 @@ public class SecurityConfig {
     @Order(1)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .cors(withDefaults())  // CORS включён
                 .securityMatcher("/api/app-ms-adapter/**", "/api/one-c/**", "/api/account/**")
                 .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -48,11 +48,24 @@ public class SecurityConfig {
     @Order(2)
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         return http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-                .cors(withDefaults())  // CORS включён
-                .securityMatcher("/api/**")
+                .securityMatcher("/one-c-app/api/**")
                 .addFilterBefore(new JWTAuthenticationFilter(appConfigServiceImpl), BasicAuthenticationFilter.class)
                 .build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("*")); // В рабочем проекте было разрешено всё
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true); // или false, если токены не в куках
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     @Bean
@@ -69,18 +82,5 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("*")); // Можно ограничить по доменам
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
     }
 }
