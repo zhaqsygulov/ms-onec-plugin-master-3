@@ -4,16 +4,13 @@ import com.siriuslab.onec.widget.app.component.JwtGenerator;
 import com.siriuslab.onec.widget.domain.account.token.entity.AccountEntity;
 import com.siriuslab.onec.widget.domain.account.token.service.AccountService;
 import com.siriuslab.onec.widget.domain.adapter.ms.context.GetEmployeeContextResponse;
-import com.siriuslab.onec.widget.domain.adapter.ms.dto.ProductDto;
 import com.siriuslab.onec.widget.domain.adapter.ms.service.MsApiService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -26,9 +23,14 @@ public class ApiAppController {
     private final AccountService accountService;
 
     @Operation(security = @SecurityRequirement(name = "basicAuth"))
-    @GetMapping("context/{contextKey}/employee")
+    @CrossOrigin(origins = "*") // или указать фронт: https://opt-order-frontend-9m7d.vercel.app
+    @RequestMapping(
+        value = "context/{contextKey}/employee",
+        method = {RequestMethod.GET, RequestMethod.OPTIONS}
+    )
     public ResponseEntity<GetEmployeeContextResponse> getContext(@PathVariable String contextKey) {
         log.info("Received contextKey: {}", contextKey);
+
         String token = jwtGenerator.generateToken();
         jwtGenerator.verifyToken(token);
 
@@ -39,20 +41,5 @@ public class ApiAppController {
         response.setSettings(accountEntity.getSettings());
 
         return ResponseEntity.ok(response);
-    }
-
-    // ✅ Новый эндпоинт /products
-    @Operation(security = @SecurityRequirement(name = "bearerAuth"))
-    @GetMapping("products")
-    public ResponseEntity<List<ProductDto>> getProducts(@RequestHeader("Authorization") String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        String token = authHeader.substring(7); // удаляем "Bearer "
-        log.info("📦 Запрос продуктов с токеном: {}", token);
-
-        List<ProductDto> products = msApiService.getProducts(token);
-        return ResponseEntity.ok(products);
     }
 }
