@@ -28,7 +28,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/moysklad/vendor/1.0/apps")
+@RequestMapping("/one-c-app/api/moysklad/vendor/1.0/apps")
 @RequiredArgsConstructor
 public class ApiMsController {
 
