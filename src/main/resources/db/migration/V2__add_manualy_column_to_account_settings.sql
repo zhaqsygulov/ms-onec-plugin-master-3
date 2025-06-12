@@ -1,2 +1,0 @@
-ALTER TABLE account_settings
-    ADD COLUMN manually BOOLEAN DEFAULT FALSE NOT NULL;
