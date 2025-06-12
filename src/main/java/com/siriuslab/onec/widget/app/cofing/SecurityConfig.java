@@ -38,7 +38,10 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .securityMatcher("/api/app-ms-adapter/**", "/api/one-c/**", "/api/account/**")
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
+                .authorizeHttpRequests(auth -> auth
+    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+    .anyRequest().authenticated()
+)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(withDefaults())
                 .build();
