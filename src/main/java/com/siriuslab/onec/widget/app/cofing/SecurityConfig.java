@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -36,12 +37,14 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .securityMatcher("/api/app-ms-adapter/**", "/api/one-c/**", "/api/account/**")
                 .authorizeHttpRequests(auth -> auth
-    .requestMatchers("/api/app-ms-adapter/context/**").permitAll() // ✅ доступ к employee без авторизации
-    .anyRequest().authenticated()
-)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // ✅ CORS preflight
+                        .requestMatchers("/api/app-ms-adapter/context/**").permitAll() // ✅ employee без auth
+                        .requestMatchers("/api/app-ms-adapter/products").permitAll()   // или authenticated()
+                        .anyRequest().authenticated()
+                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(withDefaults())
                 .build();
@@ -52,7 +55,7 @@ public class SecurityConfig {
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .securityMatcher("/one-c-app/api/**")
                 .addFilterBefore(new JWTAuthenticationFilter(appConfigServiceImpl), BasicAuthenticationFilter.class)
                 .build();
@@ -74,14 +77,17 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // ✅ Добавляем конфигурацию CORS
+    // ✅ CORS для разных окружений
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("https://opt-order-frontend-9m7d.vercel.app")); // 👈 замени на свой
+        config.setAllowedOriginPatterns(List.of(
+                "https://*.vercel.app",   // фронт на Vercel
+                "http://localhost:*"      // локальная разработка
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true); // если потребуется
+        config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
