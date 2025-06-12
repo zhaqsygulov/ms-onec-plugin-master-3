@@ -1,43 +1,47 @@
 package com.siriuslab.onec.widget.app.component;
 
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import jakarta.annotation.PostConstruct;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.siriuslab.onec.widget.app.service.AppConfigService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.Base64;
 import java.util.Date;
+import java.util.UUID;
 
+@Slf4j
 @Component
 public class JwtGenerator {
-
-    private String secret = "super-secret-key"; // 🔐 Лучше — в application.yml и с ENV
-
-    @PostConstruct
-    protected void init() {
-        secret = Base64.getEncoder().encodeToString(secret.getBytes());
+    private final String secretKey;
+    private final String appUid;
+    private static final long MAX_TOKEN_LIFETIME = 5 * 60 * 1000; // Максимальное время жизни токена в миллисекундах (например, 5 минут)
+    public JwtGenerator(AppConfigService appConfigService) {
+        this.secretKey = appConfigService.getValueByKey("jwt.secret");
+        this.appUid = appConfigService.getValueByKey("appUid");
     }
 
     public String generateToken() {
         long nowMillis = System.currentTimeMillis();
-        Date now = new Date(nowMillis);
-        Date expiry = new Date(nowMillis + 1000 * 60 * 5); // токен на 5 минут
 
-        return Jwts.builder()
-                .setIssuedAt(now)
-                .setExpiration(expiry)
-                .signWith(SignatureAlgorithm.HS256, secret)
-                .compact();
+        Algorithm algorithm = Algorithm.HMAC256(secretKey);
+
+        return JWT.create()
+                .withSubject(appUid)
+                .withIssuedAt(new Date(nowMillis))
+                .withExpiresAt(new Date(nowMillis + MAX_TOKEN_LIFETIME))
+                .withJWTId(UUID.randomUUID().toString())
+                .sign(algorithm);
     }
 
-    public boolean verifyToken(String token) {
-        try {
-            Jwts.parser()
-                .setSigningKey(secret)
-                .parseClaimsJws(token);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public void verifyToken(String token) {
+        Algorithm algorithm = Algorithm.HMAC256(secretKey);
+
+        JWTVerifier verifier = JWT.require(algorithm)
+                .build();
+
+        DecodedJWT jwt = verifier.verify(token);
+        log.info("Decoded Token Claims: {}", jwt.getClaims());
     }
 }
